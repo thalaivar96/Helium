@@ -26,9 +26,9 @@ $$\Phi_E = \oint \vec{E} \cdot d\vec{A} = \frac{q_{\text{in}}}{\varepsilon_0}$$
 > **Note:** In the surface integral, $\vec{E}$ represents the net electric field due to all charges in space (both interior and exterior), whereas $q_{\text{in}}$ includes solely the net charge enclosed within the Gaussian surface.
 
 ## 4. Electrostatic Potential and Self-Energy
-- Differential relation: $\vec{E} = -\nabla V = -\left(\frac{\partial V}{\partial x}\hat{i} + \frac{\partial V}{\partial y}\hat{j} + \frac{\partial V}{\partial z}\hat{k}\right)$
-- Self-energy of a uniformly charged spherical shell: $U = \frac{kQ^2}{2R}$
-- Self-energy of a uniformly charged solid sphere: $U = \frac{3kQ^2}{5R}$
+- Differential relation: $$\vec{E} = -\nabla V = -\left(\frac{\partial V}{\partial x}\hat{i} + \frac{\partial V}{\partial y}\hat{j} + \frac{\partial V}{\partial z}\hat{k}\right)$$
+- Self-energy of a uniformly charged spherical shell: $$U = \frac{kQ^2}{2R}$$
+- Self-energy of a uniformly charged solid sphere: $$U = \frac{3kQ^2}{5R}$$
 
 ## 5. Electric Dipole ($\vec{p} = q\vec{d}$)
 - Axial field ($r \gg d$): $E_{\text{axial}} = \frac{2kp}{r^3}$ (parallel to $\vec{p}$)
