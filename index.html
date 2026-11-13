@@ -9,7 +9,7 @@
   <script>
     (function () {
       const saved = localStorage.getItem("helium-theme");
-      const valid = ["light", "dark", "amber", "emerald"].includes(saved) ? saved : "light";
+      const valid = ["light", "dark", "amber", "emerald"].includes(saved) ? saved : "amber";
       document.documentElement.setAttribute("data-theme", valid);
     })();
   </script>
