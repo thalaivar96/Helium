@@ -1,0 +1,12 @@
+Helium/
+├── index.html
+├── css/
+│   └── style.css
+├── js/
+│   ├── chapters.js         <-- Register your chapters here
+│   └── app.js              <-- Fetches .md files & renders LaTeX/Markdown
+└── notes/
+    ├── physics/
+    │   └── electrostatics.md
+    └── chemistry/
+        └── thermodynamics.md

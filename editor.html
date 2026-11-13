@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Helium Studio — Chapter Editor</title>
+
+  <!-- Prevent theme flash before initial paint -->
+  <script>
+    (function () {
+      const saved = localStorage.getItem("helium-theme");
+      const valid = ["light", "dark", "amber", "emerald"].includes(saved) ? saved : "light";
+      document.documentElement.setAttribute("data-theme", valid);
+    })();
+  </script>
+
+  <!-- KaTeX & App Stylesheets -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.min.css" crossorigin="anonymous" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/editor.css" />
+
+  <!-- Marked.js, KaTeX, mhchem, and MathLive -->
+  <script defer src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/contrib/mhchem.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
+
+  <!-- Chapter Registry & Editor Logic -->
+  <script defer src="js/chapters.js"></script>
+  <script defer src="js/editor.js"></script>
+</head>
+<body class="editor-page">
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <a href="index.html" class="brand" title="Return to Notes Reader">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="2.2" fill="currentColor"></circle>
+          <ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(35 12 12)"></ellipse>
+          <ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(-35 12 12)"></ellipse>
+        </svg>
+        <span class="brand-name">Helium</span>
+      </a>
+      <span class="studio-badge">Studio</span>
+      <a href="index.html" class="btn-outline btn-sm">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Reader</span>
+      </a>
+    </div>
+
+    <div class="topbar-right">
+      <button id="new-draft-btn" class="btn-outline btn-sm" title="Start a blank chapter template">New</button>
+
+      <label class="btn-outline btn-sm file-upload-btn" title="Open a local .md file">
+        <input type="file" id="open-file-input" accept=".md,.markdown,.txt" hidden />
+        <span>Open .md</span>
+      </label>
+
+      <select id="load-existing-select" class="top-select" aria-label="Load existing chapter">
+        <option value="">Load Chapter...</option>
+      </select>
+
+      <button id="copy-registry-btn" class="btn-outline btn-sm" title="Copy entry snippet for js/chapters.js">Copy Registry</button>
+
+      <button id="download-md-btn" class="btn-primary btn-sm" title="Download Markdown chapter file">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Download .md</span>
+      </button>
+
+      <div class="theme-control" title="Select Color Theme">
+        <svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"></path>
+        </svg>
+        <select id="theme-select" class="theme-select" aria-label="Select Color Theme">
+          <option value="light">Light</option>
+          <option value="dark">Cosmic Black</option>
+          <option value="amber">Amber CRT</option>
+          <option value="emerald">Emerald &amp; Gold</option>
+        </select>
+        <svg class="theme-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- Chapter Metadata & Formatting Toolbar -->
+  <section class="editor-controls" aria-label="Chapter Metadata and Formatting">
+    <div class="meta-bar">
+      <div class="meta-field">
+        <label for="chapter-subject">Subject</label>
+        <select id="chapter-subject">
+          <option value="Physics">Physics</option>
+          <option value="Chemistry">Chemistry</option>
+          <option value="Mathematics">Mathematics</option>
+        </select>
+      </div>
+      <div class="meta-field meta-title">
+        <label for="chapter-title">Chapter Title</label>
+        <input type="text" id="chapter-title" placeholder="e.g. Rotational Motion" />
+      </div>
+      <div class="meta-status">
+        <span id="file-path-preview" class="path-preview">notes/physics/untitled.md</span>
+        <span id="save-status" class="save-status">Draft saved</span>
+      </div>
+
+      <div class="view-switcher" role="group" aria-label="Editor View Mode">
+        <button class="view-btn active" data-view="split">Split</button>
+        <button class="view-btn" data-view="write">Write</button>
+        <button class="view-btn" data-view="preview">Preview</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <!-- Structure -->
+      <div class="tool-group">
+        <button class="tool-btn" data-action="h1" title="Heading 1">H1</button>
+        <button class="tool-btn" data-action="h2" title="Heading 2">H2</button>
+        <button class="tool-btn" data-action="h3" title="Heading 3">H3</button>
+        <button class="tool-btn" data-action="bold" title="Bold"><strong>B</strong></button>
+        <button class="tool-btn" data-action="italic" title="Italic"><em>I</em></button>
+        <button class="tool-btn" data-action="quote" title="Note / Callout Block">Callout</button>
+        <button class="tool-btn" data-action="list" title="Bullet List">List</button>
+        <button id="open-table-btn" class="tool-btn" title="Insert Formatted Table">Table</button>
+      </div>
+
+      <span class="tool-sep" aria-hidden="true"></span>
+
+      <!-- Math & Chemistry Snippets -->
+      <div class="tool-group">
+        <button id="open-mathlive-btn" class="tool-btn tool-btn-accent" title="Open Visual MathLive Equation Builder">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 17l6-6-6-6"></path>
+            <line x1="12" y1="19" x2="20" y2="19"></line>
+          </svg>
+          <span>Visual Equation</span>
+        </button>
+        <button class="tool-btn" data-action="inline-math" title="Inline Math ($...$)">$x$</button>
+        <button class="tool-btn" data-action="block-math" title="Display Equation ($$...$$)">$$x$$</button>
+        <button class="tool-btn" data-action="chem" title="Chemical Equation (\ce{...})">Chem \ce</button>
+        <button class="tool-btn" data-snippet="\frac{a}{b}" title="Fraction">a/b</button>
+        <button class="tool-btn" data-snippet="\vec{F}" title="Vector">\vec</button>
+        <button class="tool-btn" data-snippet="\int_{a}^{b} f(x)\, dx" title="Definite Integral">Integral</button>
+        <button class="tool-btn" data-snippet="\sum_{i=1}^{n}" title="Summation">Sum</button>
+        <button class="tool-btn" data-snippet="\Delta" title="Delta">Delta</button>
+        <button class="tool-btn" data-snippet="\varepsilon_0" title="Permittivity">\varepsilon_0</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Split Workspace -->
+  <main id="workspace" class="editor-workspace view-split">
+    <section class="pane pane-write" aria-label="Markdown Source">
+      <textarea id="md-editor" spellcheck="true" placeholder="Write your chapter formula sheet and notes in Markdown + LaTeX..."></textarea>
+    </section>
+
+    <section class="pane pane-preview" aria-label="Live Helium Preview">
+      <article id="preview-container" class="markdown-body"></article>
+    </section>
+  </main>
+
+  <!-- MathLive Visual Equation Builder Modal -->
+  <div id="mathlive-modal" class="modal-backdrop" hidden>
+    <div class="modal-dialog modal-lg" role="dialog" aria-modal="true" aria-labelledby="mathlive-title">
+      <div class="modal-header">
+        <h2 id="mathlive-title">Visual Equation Builder</h2>
+        <button type="button" class="icon-btn modal-close" data-close="mathlive-modal" aria-label="Close modal">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="math-mode-row">
+          <label class="radio-pill">
+            <input type="radio" name="math-wrap-mode" value="inline" checked />
+            <span>Inline Equation (<code>$...$</code>)</span>
+          </label>
+          <label class="radio-pill">
+            <input type="radio" name="math-wrap-mode" value="block" />
+            <span>Display Block (<code>$$...$$</code>)</span>
+          </label>
+          <button type="button" id="toggle-vk-btn" class="btn-outline btn-sm">Virtual Keyboard</button>
+        </div>
+
+        <label class="field-label" for="mathlive-field">Interactive Equation Field (type normally or use the virtual keyboard icon)</label>
+        <math-field id="mathlive-field"></math-field>
+
+        <label class="field-label" for="mathlive-latex-raw">Generated LaTeX (synchronized)</label>
+        <textarea id="mathlive-latex-raw" class="latex-raw-box" rows="3" spellcheck="false"></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" data-close="mathlive-modal">Cancel</button>
+        <button type="button" id="insert-mathlive-btn" class="btn-primary">Insert into Chapter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Visual Table Builder Modal -->
+  <div id="table-modal" class="modal-backdrop" hidden>
+    <div class="modal-dialog modal-sm" role="dialog" aria-modal="true" aria-labelledby="table-modal-title">
+      <div class="modal-header">
+        <h2 id="table-modal-title">Insert Markdown Table</h2>
+        <button type="button" class="icon-btn modal-close" data-close="table-modal" aria-label="Close modal">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="table-form-grid">
+          <div class="meta-field">
+            <label for="table-cols">Columns</label>
+            <input type="number" id="table-cols" min="1" max="8" value="3" />
+          </div>
+          <div class="meta-field">
+            <label for="table-rows">Data Rows</label>
+            <input type="number" id="table-rows" min="1" max="20" value="3" />
+          </div>
+          <div class="meta-field">
+            <label for="table-align">Cell Alignment</label>
+            <select id="table-align">
+              <option value="left">Left (:---)</option>
+              <option value="center" selected>Center (:---:)</option>
+              <option value="right">Right (---:)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" data-close="table-modal">Cancel</button>
+        <button type="button" id="insert-table-btn" class="btn-primary">Insert Table</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
